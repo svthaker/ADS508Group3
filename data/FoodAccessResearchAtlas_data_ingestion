@@ -1,23 +1,11 @@
-# ============================================
-# ADS508 - Group 3
-# Shrey Thaker
-# Data Ingestion and Exploration
-# Assigned datasets:
-# 1. Food Access Research Atlas
-# 2. Census Demographic Data (ACS)
-# ============================================
+# Data Ingestion and Exploration for Food Access Research Atlas
 
-
-# -----------------------------
 # 1. Import libraries
-# -----------------------------
 import pandas as pd
 import boto3
 
 
-# -----------------------------
 # 2. Test S3 bucket access
-# -----------------------------
 s3 = boto3.client("s3")
 
 response = s3.list_objects_v2(
@@ -31,9 +19,7 @@ for obj in response.get("Contents", []):
     print(obj["Key"])
 
 
-# -----------------------------
 # 3. Load Food Access Research Atlas
-# -----------------------------
 food_access_path = "s3://shrey-nutrition-data-ads508/rawData/FoodAccess/Food Access Research Atlas.csv"
 
 food_access_df = pd.read_csv(food_access_path)
@@ -41,9 +27,7 @@ food_access_df = pd.read_csv(food_access_path)
 food_access_df.head()
 
 
-# -----------------------------
 # 4. Explore Food Access dataset
-# -----------------------------
 print("Food Access shape:", food_access_df.shape)
 print("\nFood Access columns:")
 for col in food_access_df.columns:
@@ -59,9 +43,7 @@ print("\nFood Access summary statistics:")
 display(food_access_df.describe())
 
 
-# -----------------------------
 # 5. Select key Food Access columns
-# -----------------------------
 food_access_clean = food_access_df[
     [
         "CensusTract",
@@ -83,22 +65,16 @@ food_access_clean = food_access_df[
 food_access_clean.head()
 
 
-# -----------------------------
 # 6. Check cleaned Food Access shape
-# -----------------------------
 print("Clean Food Access shape:", food_access_clean.shape)
 
 
-# -----------------------------
 # 7. Check missing values in cleaned Food Access data
-# -----------------------------
 print("Missing values before imputation:")
 print(food_access_clean.isnull().sum())
 
 
-# -----------------------------
 # 8. Fill missing numeric values with median
-# -----------------------------
 food_access_clean["PovertyRate"] = food_access_clean["PovertyRate"].fillna(
     food_access_clean["PovertyRate"].median()
 )
@@ -119,16 +95,13 @@ print("Missing values after imputation:")
 print(food_access_clean.isnull().sum())
 
 
-# -----------------------------
 # 9. Save cleaned Food Access data locally
-# -----------------------------
 food_access_clean.to_csv("food_access_clean.csv", index=False)
 print("Saved local file: food_access_clean.csv")
 
 
-# -----------------------------
+
 # 10. Upload cleaned Food Access data to S3
-# -----------------------------
 s3.upload_file(
     "food_access_clean.csv",
     "shrey-nutrition-data-ads508",
@@ -138,9 +111,7 @@ s3.upload_file(
 print("Uploaded to s3://shrey-nutrition-data-ads508/processedData/food_access_clean.csv")
 
 
-# -----------------------------
 # 11. Load ACS Census files for inspection
-# -----------------------------
 dp05_path = "s3://shrey-nutrition-data-ads508/rawData/ACSDP1Y2024.DP05-2026-03-13T140903.csv"
 s1701_path = "s3://shrey-nutrition-data-ads508/rawData/ACSST1Y2024.S1701-2026-03-13T140807.csv"
 s1901_path = "s3://shrey-nutrition-data-ads508/rawData/ACSST1Y2024.S1901-2026-03-13T140835.csv"
@@ -150,9 +121,7 @@ s1701_df = pd.read_csv(s1701_path)
 s1901_df = pd.read_csv(s1901_path)
 
 
-# -----------------------------
 # 12. Preview ACS files
-# -----------------------------
 print("DP05 preview:")
 display(dp05_df.head(20))
 
@@ -163,9 +132,7 @@ print("S1901 preview:")
 display(s1901_df.head(20))
 
 
-# -----------------------------
 # 13. Document ACS finding
-# -----------------------------
 print("""
 Observation:
 The ACS files (DP05, S1701, S1901) were successfully ingested from S3,
