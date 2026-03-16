@@ -1,4 +1,4 @@
-# Data Ingestion and Exploration for Food Access Research Atlas
+# Data Ingestion and Exploration for Food Access Research Atlas and Census Demographic Data (ACS)
 
 # 1. Import libraries
 import pandas as pd
