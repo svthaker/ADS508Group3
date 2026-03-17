@@ -24,8 +24,15 @@ All raw datasets are stored in an Amazon S3 bucket, allowing the team to access 
 
 ### S3 bucket location:
 
+Project data is stored in Amazon S3. Each teammate may use their own bucket, so the bucket name should be configured locally in the .env file rather than hardcoded in scripts.
+
+Example .env setup:
+
 ```
-s3://sagemaker-us-east-1-274099962196/rawData/
+AWS_REGION=us-east-1
+S3_BUCKET=BucketName
+S3_PREFIX=rawData/
+LOCAL_DATA_DIR=data/raw
 ```
 
 Datasets are organized into folders within the bucket to maintain a consistent structure.
@@ -37,11 +44,19 @@ rawData/
     ACSDP1Y2024.DP05...
     ACSST1Y2024.S1701...
     ACSST1Y2024.S1901...
+    Censue_Dataset/
     FoodAccess/
     FoodEnvironment/
     PLACES__Local_Data...
     geofabrik_NorCal/
     geofabrik_SoCal/
+```
+
+#### .env Setup 
+
+```
+cp .env.example .env
+pip install -r requirements.txt
 ```
 
 ### Tools Used
