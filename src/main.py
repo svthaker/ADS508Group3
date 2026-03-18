@@ -1,9 +1,14 @@
-from ingest_data import download_data
+from src.ingest_data import download_raw_files
+from src.preprocess_data import run_all_cleaning
+from src.config import S3_BUCKET, S3_PREFIX, LOCAL_DATA_DIR
 
 
 def main():
     print("Starting pipeline...")
-    download_data()
+
+    download_raw_files(S3_BUCKET, S3_PREFIX, LOCAL_DATA_DIR)
+    run_all_cleaning()
+
     print("Pipeline finished.")
 
 

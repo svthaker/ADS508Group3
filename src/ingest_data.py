@@ -1,38 +1,109 @@
 from pathlib import Path
 import boto3
-from config import AWS_REGION, S3_BUCKET, S3_PREFIX, LOCAL_DATA_DIR
+import pandas as pd
+
+from .config import AWS_REGION, S3_BUCKET, S3_PREFIX, LOCAL_DATA_DIR
+
+SKIP_TERMS = ["readme", "variablelookup", "variablelist"]
 
 
-def download_data():
+def get_s3_client():
+    return boto3.client("s3", region_name=AWS_REGION)
+
+
+def list_s3_files(bucket: str, prefix: str) -> list[str]:
     """
-    Download files from the configured S3 bucket/prefix
-    into the local raw data directory.
+    List all object keys under an S3 prefix.
     """
-    if not S3_BUCKET:
-        raise ValueError("S3_BUCKET is not set. Check your .env file.")
+    if not bucket:
+        raise ValueError("S3 bucket is not set. Check your .env file.")
 
-    s3 = boto3.client("s3", region_name=AWS_REGION)
+    s3 = get_s3_client()
+    paginator = s3.get_paginator("list_objects_v2")
+    pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
 
-    local_dir = Path(LOCAL_DATA_DIR)
-    local_dir.mkdir(parents=True, exist_ok=True)
+    files = []
+    for page in pages:
+        for obj in page.get("Contents", []):
+            files.append(obj["Key"])
 
-    response = s3.list_objects_v2(Bucket=S3_BUCKET, Prefix=S3_PREFIX)
+    return files
 
-    if "Contents" not in response:
-        print(f"No files found in s3://{S3_BUCKET}/{S3_PREFIX}")
+
+def clean_dataset_name(key: str) -> str:
+    """
+    Convert an S3 file path into a cleaner dataset name.
+    """
+    name = Path(key).name.replace(".csv", "")
+    name = (
+        name.replace(" ", "_")
+        .replace(",", "")
+        .replace("-", "_")
+        .replace(".", "_")
+    )
+    return name
+
+
+def is_useful_csv(key: str, skip_terms: list[str] | None = None) -> bool:
+    """
+    Return True if the S3 object is a useful CSV dataset to load.
+    """
+    skip_terms = skip_terms or SKIP_TERMS
+    lower_key = key.lower()
+
+    return key.endswith(".csv") and not any(term in lower_key for term in skip_terms)
+
+
+def load_csv_datasets_from_s3(bucket: str, prefix: str) -> dict[str, pd.DataFrame]:
+    """
+    Load useful CSV datasets from an S3 prefix into a dictionary of DataFrames.
+    """
+    files = list_s3_files(bucket, prefix)
+
+    if not files:
+        print(f"No files found in s3://{bucket}/{prefix}")
+        return {}
+
+    datasets = {}
+
+    for key in files:
+        if is_useful_csv(key):
+            s3_path = f"s3://{bucket}/{key}"
+            dataset_name = clean_dataset_name(key)
+
+            print(f"Loading {s3_path}")
+            datasets[dataset_name] = pd.read_csv(s3_path, low_memory=False)
+
+    return datasets
+
+
+def download_raw_files(bucket: str, prefix: str, local_dir: str, overwrite: bool = False) -> None:
+    """
+    Download all raw files from S3 to a local directory while preserving structure.
+    """
+    files = list_s3_files(bucket, prefix)
+
+    if not files:
+        print(f"No files found in s3://{bucket}/{prefix}")
         return
 
-    for obj in response["Contents"]:
-        key = obj["Key"]
+    s3 = get_s3_client()
+    local_base = Path(local_dir)
+    local_base.mkdir(parents=True, exist_ok=True)
 
+    for key in files:
         if key.endswith("/"):
             continue
 
-        relative_path = key.replace(S3_PREFIX, "", 1)
-        local_path = local_dir / relative_path
+        relative_path = key.replace(prefix, "", 1)
+        local_path = local_base / relative_path
         local_path.parent.mkdir(parents=True, exist_ok=True)
 
-        print(f"Downloading {key} -> {local_path}")
-        s3.download_file(S3_BUCKET, key, str(local_path))
+        if local_path.exists() and not overwrite:
+            print(f"Skipping existing file: {local_path}")
+            continue
 
-    print("Download complete.")
+        print(f"Downloading {key} -> {local_path}")
+        s3.download_file(bucket, key, str(local_path))
+
+    print("Raw file download complete.")
