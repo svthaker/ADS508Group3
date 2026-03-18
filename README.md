@@ -18,14 +18,19 @@ The project integrates datasets from several sources, including:
 
 The analysis pipeline uses AWS cloud storage and Python-based tools to ingest, process, and explore these datasets.
 
-## Data Storage
+## Project Setup
 
-All raw datasets are stored in an Amazon S3 bucket, allowing the team to access a shared data source without downloading files locally.
+### Data Storage
 
-### S3 bucket location:
+Project data is stored in Amazon S3. Depending on team workflow, each teammate may use their own bucket, so the bucket name should be configured locally in the `.env` file rather than hardcoded in project scripts.
 
-```
-s3://sagemaker-us-east-1-274099962196/rawData/
+Example `.env` configuration:
+
+```env
+AWS_REGION=us-east-1
+S3_BUCKET=BucketName
+S3_PREFIX=rawData/
+LOCAL_DATA_DIR=data/raw
 ```
 
 Datasets are organized into folders within the bucket to maintain a consistent structure.
@@ -37,6 +42,7 @@ rawData/
     ACSDP1Y2024.DP05...
     ACSST1Y2024.S1701...
     ACSST1Y2024.S1901...
+    Censue_Dataset/
     FoodAccess/
     FoodEnvironment/
     PLACES__Local_Data...
@@ -44,23 +50,69 @@ rawData/
     geofabrik_SoCal/
 ```
 
+### Environment Setup
+
+Copy the example environment file and update it with your local configuration:
+
+```
+cp .env.example .env
+```
+
+Install project dependencies:
+
+```
+pip install -r requirements.txt
+```
+
+### Run the Project
+
+```
+python src/main.py
+```
+This will:
+
+    load configuration from .env
+
+    connect to AWS S3
+
+    download raw datasets to the local environment
+
+    prepare data for downstream analysis
+
+### Installation and Environment Validation
+
+The `installation/` folder contains setup notebooks used to prepare and validate the SageMaker Studio lab environment. These notebooks document project setup steps such as:
+
+    - installing or checking required dependencies
+    - validating the SageMaker Studio environment
+    - creating or verifying S3 bucket access
+    - checking IAM role configuration
+
+These steps are not required for daily pipeline execution, but are useful for initial setup and debugging.
+
 ### Tools Used
 
-The project uses the following tools:
+#### AWS Services
 
-    AWS Services
+    Amazon S3 (data storage)
 
-    Amazon S3 for dataset storage
+    SageMaker Studio (development environment)
 
-    SageMaker Studio for data ingestion and exploration
+#### Python Libraries
 
-    Python Libraries
+    pandas (data processing)
 
-    pandas for tabular data processing
+    geopandas (geospatial analysis)
 
-    geopandas for geospatial datasets
+    boto3 (AWS interaction)
 
-    boto3 for interacting with AWS S3
+    python-dotenv (environment configuration)
+
+#### Development Tools
+
+    Jupyter notebooks (exploration and validation)
+
+    GitHub (version control and collaboration)
 
 #### Development Tools
 
@@ -70,22 +122,26 @@ The project uses the following tools:
 
 ## Data Ingestion
 
-Datasets are ingested directly from S3 using Python within a SageMaker Studio notebook.
+Data ingestion is handled programmatically through the pipeline using boto3.
 
-Example ingestion code:
+The pipeline:
+
+    reads configuration from .env
+
+    connects to S3
+
+    iterates through objects in the specified prefix
+
+    downloads datasets to a local directory
+
+### Example structure:
 
 ```
-import pandas as pd
-
-BUCKET = "sagemaker-us-east-1-274099962196"
-RAW_PREFIX = "rawData/"
-
-df = pd.read_csv(
-    f"s3://{BUCKET}/{RAW_PREFIX}ACSDP1Y2024.DP05-2026-03-13T140903.csv"
-)
+src/
+    ingest_data.py
 ```
 
-To ensure reproducibility, the notebook automatically discovers and loads CSV files from the raw data folder.
+This replaces manual ingestion steps previously performed in notebooks and ensures reproducibility across team members.
 
 ### Geospatial Data Processing
 
@@ -97,15 +153,19 @@ OpenStreetMap POI datasets were used to extract food retail locations, including
 
     convenience stores
 
-The following categories were filtered from the OSM dataset:
+Filtered categories include:
 
     convenience
+
     greengrocer
+
     general
+
     department_store
+
     market_place
 
-These locations were combined into a statewide dataset representing food store access points.
+These are combined into a statewide dataset representing food access points.
 
 ## Processed Datasets
 
@@ -113,74 +173,72 @@ Derived datasets are stored in the project repository under:
 
 ```
 data/processed/
-
+```
 Current processed outputs include:
 
 california_food_store_locations.geojson
 california_food_store_locations.csv
-```
-
-These files contain filtered grocery and food retail locations extracted from OpenStreetMap POI datasets.
 
 ## Repository Structure
 
-ADS508Group3
+ADS508Group3/
 │
-├── data
+├── src/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── config.py
+│   ├── ingest_data.py
+│   ├── preprocessed_data.py
+│
+├── installation/
+│   ├── 01_setup_dependencies.ipynb
+│   ├── 02_check_environment.ipynb
+│   ├── 03_validate_s3_bucket.ipynb
+│   ├── 04_validate_iam_role.ipynb
+│
+├── data/
 │   ├── processed
-│   │   ├── california_food_store_locations.geojson
-│   │   └── california_food_store_locations.csv
+│   ├── raw 
+│   ├── data_ingestion.ipynb 
+│   ├── FoodAccessResearchAtlas_data_ingestion 
+│   ├── GIS_data_ingestion.ipynb
+│   ├── PLACES.py
+│   ├── RetailFoodENV.py 
 │
-├── NutriAccessAnalytics.ipynb
-├── dependency_setup.py
+├── .env              ❌ (NOT tracked)
+├── .env.example      ✅ (shared template)
+├── .gitignore
+├── requirements.txt
 ├── README.md
 
 ## Data Exploration
 
-During the exploration phase, the datasets are evaluated for:
+Exploratory analysis is conducted in notebooks using pandas and geopandas.
 
-    missing values
+This includes:
 
-    data quality issues
+    missing value analysis
 
-    key fields and join variables
+    data quality checks
 
-    variable data types
+    identifying key join fields
 
-    potential biases or inconsistencies
+    detecting inconsistencies or bias
 
-    relationships between socioeconomic and food access indicators
+    exploring relationships between datasets
 
-Exploration is conducted using pandas and geopandas within the project notebook.
+## Running the Project (End-to-End)
 
-## Running the Project
+The project uses a Python-based preprocessing pipeline located in the src/ directory.
 
-To reproduce the analysis:
-
-    Clone the repository
+Run the pipeline with:
 
 ```
 git clone https://github.com/svthaker/ADS508Group3
+cd ADS508Group3
+cp .env.example .env
+pip install -r requirements.txt
+python src/main.py
 ```
 
-    Open the SageMaker notebook environment
-
-    Run the dependency setup file if required
-
-    Execute the notebook cells to ingest and explore the datasets
-
-    Datasets will load directly from the S3 bucket.
-
 ## Future Work
-
-Planned next steps include:
-
-    cleaning and standardizing socioeconomic datasets
-
-    integrating food access indicators with demographic variables
-
-    spatial analysis of food store density
-
-    identifying potential food desert regions
-
-    developing visualizations and maps of food accessibility

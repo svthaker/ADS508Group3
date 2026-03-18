@@ -1,0 +1,10 @@
+boto3
+pandas
+numpy
+python-dotenv
+s3fs
+awswrangler
+matplotlib
+scikit-learn
+jupyter
+notebook
