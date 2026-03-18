@@ -1,0 +1,75 @@
+name: Pipeline Monitoring
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - feature/project-standardization
+    paths:
+      - "src/**"
+      - "requirements.txt"
+      - ".github/workflows/pipeline_monitoring.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "requirements.txt"
+      - ".github/workflows/pipeline_monitoring.yml"
+
+jobs:
+  pipeline-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system dependencies for geospatial libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gdal-bin libgdal-dev python3-gdal
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate source files compile
+        run: |
+          python -m py_compile src/config.py
+          python -m py_compile src/ingest_data.py
+          python -m py_compile src/preprocess_data.py
+          python -m py_compile src/main.py
+
+      - name: Check package imports
+        run: |
+          python -c "import src.config"
+          python -c "import src.ingest_data"
+          python -c "import src.preprocess_data"
+          python -c "import src.main"
+
+      - name: Create pipeline report
+        run: |
+          mkdir -p reports
+          {
+            echo "# Pipeline Monitoring Report"
+            echo ""
+            echo "- Workflow run completed successfully"
+            echo "- Python source files compiled"
+            echo "- Core pipeline modules imported successfully"
+            echo "- Timestamp (UTC): $(date -u)"
+          } > reports/pipeline_report.md
+
+      - name: Upload monitoring artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-monitoring-report
+          path: reports/pipeline_report.md
+          if-no-files-found: error

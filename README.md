@@ -184,9 +184,11 @@ california_food_store_locations.csv
 ADS508Group3/
 │
 ├── src/
+│   ├── __init__.py
 │   ├── main.py
 │   ├── config.py
 │   ├── ingest_data.py
+│   ├── preprocessed_data.py
 │
 ├── installation/
 │   ├── 01_setup_dependencies.ipynb
@@ -195,7 +197,13 @@ ADS508Group3/
 │   ├── 04_validate_iam_role.ipynb
 │
 ├── data/
-├── documents/
+│   ├── processed
+│   ├── raw 
+│   ├── data_ingestion.ipynb 
+│   ├── FoodAccessResearchAtlas_data_ingestion 
+│   ├── GIS_data_ingestion.ipynb
+│   ├── PLACES.py
+│   ├── RetailFoodENV.py 
 │
 ├── .env              ❌ (NOT tracked)
 ├── .env.example      ✅ (shared template)
@@ -221,7 +229,9 @@ This includes:
 
 ## Running the Project (End-to-End)
 
-To reproduce the project:
+The project uses a Python-based preprocessing pipeline located in the src/ directory.
+
+Run the pipeline with:
 
 ```
 git clone https://github.com/svthaker/ADS508Group3
