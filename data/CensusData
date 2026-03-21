@@ -1,0 +1,54 @@
+import pandas as pd
+-
+# Load Census DP05 dataset from S3
+dp05_path = "s3://shrey-nutrition-data-ads508/rawData/ACSDP5Y2023.DP05-Data.csv"
+dp05_df = pd.read_csv(dp05_path, low_memory=False)
+
+# Remove metadata row
+dp05_df = dp05_df.iloc[1:].reset_index(drop=True)
+
+# Select relevant columns
+dp05_clean = dp05_df[[
+    "GEO_ID",
+    "NAME",
+    "DP05_0001E",  # Total population
+    "DP05_0002E",  # Male population
+    "DP05_0003E",  # Female population
+    "DP05_0018E"   # Median age
+]].copy()
+
+# Rename columns for clarity
+dp05_clean.columns = [
+    "geo_id",
+    "county_name",
+    "total_population",
+    "male_population",
+    "female_population",
+    "median_age"
+]
+
+# Convert numeric columns
+numeric_cols = [
+    "total_population",
+    "male_population",
+    "female_population",
+    "median_age"
+]
+
+for col in numeric_cols:
+    dp05_clean[col] = pd.to_numeric(dp05_clean[col], errors="coerce")
+
+# Split county and state
+dp05_clean[["county", "state"]] = dp05_clean["county_name"].str.split(", ", expand=True)
+
+# Remove "County" from county names
+dp05_clean["county"] = dp05_clean["county"].str.replace(" County", "", regex=False)
+
+# Standardize for merging (optional but recommended)
+dp05_clean["county"] = dp05_clean["county"].str.lower()
+dp05_clean["state"] = dp05_clean["state"].str.lower()
+
+# Preview final cleaned dataset
+dp05_clean.head()
+
+#Cleaned Census DP05 demographic data by removing metadata rows, selecting key features, converting data types, and standardizing geographic identifiers for downstream merging.
