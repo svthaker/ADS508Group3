@@ -173,10 +173,6 @@ def clean_census_data() -> pd.DataFrame:
     s1701_df = pd.read_csv(s1701_path, low_memory=False)
     s1901_df = pd.read_csv(s1901_path, low_memory=False)
 
-    print("DP05 columns:", dp05_df.columns.tolist()[:10])
-    print("S1701 columns:", s1701_df.columns.tolist()[:10])
-    print("S1901 columns:", s1901_df.columns.tolist()[:10])
-
     # Remove ACS metadata row
     dp05_df = dp05_df.iloc[1:].reset_index(drop=True)
     s1701_df = s1701_df.iloc[1:].reset_index(drop=True)
@@ -295,10 +291,13 @@ def clean_places_data() -> pd.DataFrame:
         "locationname": "county"
     })
 
-    ca_wide = _standardize_county_state_columns(
-        ca_wide,
-        state_col="state",
-        county_col="county"
+    ca_wide["state"] = "california"
+    ca_wide["county"] = (
+        ca_wide["county"]
+        .astype(str)
+        .str.replace(" County", "", regex=False)
+        .str.lower()
+        .str.strip()
     )
 
     _save_and_upload(ca_wide, "places_ca_health_clean.csv")
@@ -335,16 +334,19 @@ def clean_food_environment_data() -> pd.DataFrame:
 
     wide_df.columns.name = None
     wide_df.columns = [str(col).strip().lower() for col in wide_df.columns]
-    wide_df = wide_df.rename(columns={
-        "state": "state",
-        "county": "county"
-    })
 
-    wide_df = _standardize_county_state_columns(
-        wide_df,
-        state_col="state",
-        county_col="county"
+    wide_df["state"] = wide_df["state"].astype(str).str.lower().str.strip()
+    wide_df["county"] = (
+        wide_df["county"]
+        .astype(str)
+        .str.replace(" County", "", regex=False)
+        .str.lower()
+        .str.strip()
     )
+
+    # Keep only California rows
+    wide_df = wide_df[wide_df["state"] == "ca"].copy()
+    wide_df["state"] = "california"
 
     _save_and_upload(wide_df, "food_environment_clean.csv")
     return wide_df
