@@ -12,6 +12,7 @@ data/processed/
 # Data files
 *.csv
 *.geojson
+*.parquet
 
 # Python cache
 __pycache__/
