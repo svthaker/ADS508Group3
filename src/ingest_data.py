@@ -107,3 +107,12 @@ def download_raw_files(bucket: str, prefix: str, local_dir: str, overwrite: bool
         s3.download_file(bucket, key, str(local_path))
 
     print("Raw file download complete.")
+
+
+def upload_file_to_s3(local_path: str, bucket: str, s3_key: str) -> None:
+    """
+    Upload a file to S3.
+    """
+    s3 = get_s3_client()
+    s3.upload_file(local_path, bucket, s3_key)
+    print(f"Uploaded to s3://{bucket}/{s3_key}")
