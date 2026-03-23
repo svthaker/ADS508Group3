@@ -238,7 +238,7 @@ git clone https://github.com/svthaker/ADS508Group3
 cd ADS508Group3
 cp .env.example .env
 pip install -r requirements.txt
-python src/main.py
+python main.py
 ```
 
 ## Future Work
