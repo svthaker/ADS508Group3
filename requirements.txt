@@ -8,3 +8,6 @@ matplotlib
 scikit-learn
 jupyter
 notebook
+geopandas>=0.14
+pyarrow>=14.0
+seaborn
