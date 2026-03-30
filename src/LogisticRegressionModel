@@ -12,23 +12,32 @@ from sklearn.metrics import (
 )
 
 # Define X and y
-X = features.drop(columns=["state", "county", "high_food_access_risk"])
+# Exclude text columns and columns used to create the target label
+X = features.drop(columns=[
+    "state",
+    "county",
+    "high_food_access_risk",
+    "low_income_tracts_count",
+    "lila_1_10_count"
+])
 y = features["high_food_access_risk"]
 
-# Train-test split (70/30 stratified)
+# Train-test split
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y,
+    X,
+    y,
     test_size=0.30,
     random_state=42,
     stratify=y
 )
 
-# Scale numeric features
+# Scale features
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-log_model = LogisticRegression(random_state=42)
+# Build and train model
+log_model = LogisticRegression(random_state=42, max_iter=1000)
 log_model.fit(X_train_scaled, y_train)
 
 # Predictions
@@ -46,3 +55,12 @@ print("\nROC-AUC Score:", roc_auc_score(y_test, y_prob))
 ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
 plt.title("Logistic Regression Confusion Matrix")
 plt.show()
+
+# Coefficients table
+coef_df = pd.DataFrame({
+    "Feature": X.columns,
+    "Coefficient": log_model.coef_[0]
+}).sort_values(by="Coefficient", ascending=False)
+
+print("\nLogistic Regression Coefficients:")
+print(coef_df)
