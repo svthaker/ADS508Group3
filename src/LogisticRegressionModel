@@ -1,0 +1,48 @@
+# Logistic Regression Model
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+    roc_auc_score,
+    ConfusionMatrixDisplay
+)
+
+# Define X and y
+X = features.drop(columns=["state", "county", "high_food_access_risk"])
+y = features["high_food_access_risk"]
+
+# Train-test split (70/30 stratified)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.30,
+    random_state=42,
+    stratify=y
+)
+
+# Scale numeric features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+log_model = LogisticRegression(random_state=42)
+log_model.fit(X_train_scaled, y_train)
+
+# Predictions
+y_pred = log_model.predict(X_test_scaled)
+y_prob = log_model.predict_proba(X_test_scaled)[:, 1]
+
+# Evaluation
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+print("\nROC-AUC Score:", roc_auc_score(y_test, y_prob))
+
+# Confusion matrix
+ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
+plt.title("Logistic Regression Confusion Matrix")
+plt.show()
