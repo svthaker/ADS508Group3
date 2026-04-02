@@ -9,6 +9,10 @@
 data/raw/
 data/processed/
 
+# Keep final sample dataset
+!data/final/
+!data/final/nutriaccess_features_sample.csv
+
 # Data files
 *.csv
 *.geojson
