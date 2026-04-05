@@ -98,7 +98,6 @@ Results highlight geographic disparities in food access
 ADS508Group3/
 │
 ├── src/
-│   
 │   ├── config.py
 │   ├── ingest_data.py
 │   ├── preprocess_data.py
