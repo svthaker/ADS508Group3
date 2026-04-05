@@ -213,9 +213,9 @@ This pipeline could be extended into a decision-support tool for identifying foo
 
 Key areas for future improvement include:
 
-    Expanding the size, coverage, and granularity of the dataset
-    Strengthening the modeling framework through more rigorous validation and hyperparameter tuning
-    Extending the pipeline into a more operational, user-facing decision-support system
+   - Expanding the size, coverage, and granularity of the dataset
+   - Strengthening the modeling framework through more rigorous validation and hyperparameter tuning
+   - Extending the pipeline into a more operational, user-facing decision-support system
 
 ## 🌎 Impact
 
@@ -224,5 +224,7 @@ This project demonstrates how data-driven approaches can help identify and prior
 ## 👥 Team
 
 Shery Thaker
+
 James Shoenhair
+
 Nancy Walker
