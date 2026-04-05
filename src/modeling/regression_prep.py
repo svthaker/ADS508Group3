@@ -2,33 +2,34 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-def prepare_model_data(features):
+def prepare_regression_data(features):
     features = features.copy()
     features.columns = features.columns.str.strip()
-    
-    required_cols =[
+
+    required_cols = [
         "state",
         "county",
-        "high_food_access_risk",
+        "lila_rate",
         "low_income_tracts_count",
         "lila_1_10_count"
     ]
     missing = [col for col in required_cols if col not in features.columns]
     if missing:
-        raise ValueError(f"Missing required columns for classification: {missing}")
+        raise ValueError(f"Missing required columns for regression: {missing}")
 
     X = features.drop(columns=[
         "state",
         "county",
-        "high_food_access_risk",
+        "high_food_access_risk",   # drop if present
+        "lila_rate",
         "low_income_tracts_count",
         "lila_1_10_count"
-    ])
+    ], errors="ignore")
 
-    y = features["high_food_access_risk"]
+    y = features["lila_rate"]
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.30, random_state=42, stratify=y
+        X, y, test_size=0.30, random_state=42
     )
 
     scaler = StandardScaler()
@@ -50,9 +51,6 @@ def prepare_model_data(features):
         "y": y,
         "X_train": X_train,
         "X_test": X_test,
-        "X_train_scaled": X_train_scaled,
-        "X_test_scaled": X_test_scaled,
         "y_train": y_train,
-        "y_test": y_test,
-        "scaler": scaler
+        "y_test": y_test
     }

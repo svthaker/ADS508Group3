@@ -12,6 +12,7 @@ from sklearn.metrics import (
     ConfusionMatrixDisplay
 )
 
+
 def evaluate_classifier(model, X_test, y_test, feature_names=None, positive_label=1):
     y_pred = model.predict(X_test)
     y_prob = model.predict_proba(X_test)[:, 1]
@@ -19,13 +20,21 @@ def evaluate_classifier(model, X_test, y_test, feature_names=None, positive_labe
     metrics = {
         "accuracy": accuracy_score(y_test, y_pred),
         "balanced_accuracy": balanced_accuracy_score(y_test, y_pred),
-        "precision_class_1": precision_score(y_test, y_pred, pos_label=positive_label, zero_division=0),
-        "recall_class_1": recall_score(y_test, y_pred, pos_label=positive_label, zero_division=0),
-        "f1_class_1": f1_score(y_test, y_pred, pos_label=positive_label, zero_division=0),
+        "precision_class_1": precision_score(
+            y_test, y_pred, pos_label=positive_label, zero_division=0
+        ),
+        "recall_class_1": recall_score(
+            y_test, y_pred, pos_label=positive_label, zero_division=0
+        ),
+        "f1_class_1": f1_score(
+            y_test, y_pred, pos_label=positive_label, zero_division=0
+        ),
         "roc_auc": roc_auc_score(y_test, y_prob),
         "pr_auc": average_precision_score(y_test, y_prob),
     }
 
+    print("Classification Metrics")
+    print("----------------------")
     for name, value in metrics.items():
         print(f"{name}: {value:.3f}")
 
@@ -40,11 +49,24 @@ def evaluate_classifier(model, X_test, y_test, feature_names=None, positive_labe
     plt.title("Confusion Matrix")
     plt.show()
 
-    coef_df = None
-    if feature_names is not None and hasattr(model, "coef_"):
-        coef_df = pd.DataFrame({
-            "Feature": feature_names,
-            "Coefficient": model.coef_[0]
-        }).sort_values(by="Coefficient", ascending=False)
+    importance_df = None
+    if feature_names is not None:
+        if hasattr(model, "coef_"):
+            importance_df = pd.DataFrame({
+                "Feature": feature_names,
+                "Value": model.coef_[0]
+            }).sort_values(by="Value", ascending=False)
 
-    return metrics, coef_df
+            print("\nTop Coefficients:")
+            print(importance_df.head(10))
+
+        elif hasattr(model, "feature_importances_"):
+            importance_df = pd.DataFrame({
+                "Feature": feature_names,
+                "Value": model.feature_importances_
+            }).sort_values(by="Value", ascending=False)
+
+            print("\nTop Feature Importances:")
+            print(importance_df.head(10))
+
+    return metrics, importance_df
