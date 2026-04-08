@@ -57,6 +57,27 @@ The pipeline follows a structured workflow:
     - Compare model performance
     - Generate insights and visualizations
 
+## 📊 Athena Validation
+
+Athena queries are used in the notebook to:
+
+    - Validate dataset structure and row counts  
+    - Explore county-level risk factors  
+    - Analyze relationships between food access, socioeconomic conditions, and health outcomes  
+
+This provides a scalable SQL-based analysis layer on top of the processed dataset.
+
+## ☁️ AWS Services Used
+
+This project leverages multiple AWS services to support a scalable data pipeline and cloud-based modeling workflow:
+
+    - **Amazon S3** – Stores raw, processed, and final datasets  
+    - **AWS Glue Data Catalog** – Registers processed datasets as structured tables  
+    - **Amazon Athena** – Enables SQL-based querying for data validation and analysis  
+    - **Amazon SageMaker** – Supports notebook development and cloud-based model training  
+
+These services work together to create an end-to-end data pipeline from ingestion to modeling and analysis.
+
 ## 🧠 Modeling Workflow
 **Classification Models**
 
@@ -79,6 +100,17 @@ Used to predict lila_rate:
 Gradient Boosting (Classification): Selected for strong performance and ability to capture nonlinear relationships
 
 Random Forest Regressor (Regression): Selected for best balance of accuracy and generalization (R² ≈ 0.60)
+
+## 🚀 Cloud Training (SageMaker)
+
+The final classification model (Gradient Boosting) was also trained using an Amazon SageMaker training job.
+
+    - Training data stored in S3  
+    - Training executed on ml.m5.large instance  
+    - Model artifacts saved to:
+      s3://<your-bucket>/model-artifacts/
+
+This demonstrates how the modeling workflow can be scaled and executed in a cloud environment beyond local notebooks.
 
 ### 📈 Key Results
 
@@ -140,10 +172,22 @@ cp .env.example .env
 Update with your AWS configuration: 
 
 ```env
+# AWS Configuration
 AWS_REGION=us-east-1
-S3_BUCKET=BucketName
+S3_BUCKET=your-bucket-name
+
+# S3 Data Paths
 S3_PREFIX=rawData/
+PROCESSED_S3_PREFIX=processedData/
+
+# Local Paths
 LOCAL_DATA_DIR=data/raw
+PROCESSED_DATA_DIR=data/processed
+
+# Athena Configuration
+ATHENA_DATABASE=nutriaccess_db
+ATHENA_TABLE=nutriaccess_features
+ATHENA_OUTPUT_PREFIX=athena-results/query-results/
 ```
 
 Install project dependencies:
@@ -151,6 +195,29 @@ Install project dependencies:
 ```
 pip install -r requirements.txt
 ```
+
+## 🔍 Athena Query Layer Setup
+
+To enable SQL-based validation and analysis:
+
+1. Ensure the processed dataset exists in your S3 bucket:
+   s3://<your-bucket>/processedData/athena/nutriaccess_features/
+
+2. Create an Athena results folder:
+   s3://<your-bucket>/athena-results/query-results/
+
+3. Set up a Glue crawler:
+   - Data source: S3 folder above (not the file)
+   - Database: nutriaccess_db
+   - Run crawler once to register the table
+
+4. Verify in Athena:
+   SHOW TABLES IN nutriaccess_db;
+
+Expected table:
+   nutriaccess_features
+
+**Note:** This is a one-time setup step required before running Athena queries in the notebook.
 
 ## ▶️ Running the Pipeline
 
