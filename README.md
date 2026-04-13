@@ -142,10 +142,13 @@ ADS508Group3/
 │   │   ├── evaluation.py
 │   │   ├── regression_evaluation.py
 │
-├── notebooks/
+├── archive/
 │   ├── gradient_boosting.ipynb
 │   ├── LogisticRegressionModel
+│   ├── Decision_Tree.py
+│   ├── Density_Map.py
 │   ├── Random_Forest.py
+│   ├── Random_Forest2.py
 │
 ├── data/
 │   ├── raw/
